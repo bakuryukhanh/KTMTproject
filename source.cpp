@@ -411,6 +411,32 @@ class Qint
             a.Setbit(i,a.BitValue(bit));
         return a;
     }
+    friend Qint operator & (Qint a,Qint b)
+    {
+        Qint result;
+        for(int i=0;i<128;i++)
+        {
+            if(a.BitValue(i) && b.BitValue(i))
+                result.Setbit(i,1);
+            else
+                result.Setbit(i,0);
+
+        }
+        return result;
+    }
+    friend Qint operator | (Qint a,Qint b)
+    {
+        Qint result;
+        for(int i=0;i<128;i++)
+        {
+            if(!a.BitValue(i) && b.BitValue(i))
+                result.Setbit(i,0);
+            else
+                result.Setbit(i,1);
+
+        }
+        return result;
+    }
     friend Qint operator ^ (Qint a,Qint b)
     {
         Qint result;
@@ -555,12 +581,8 @@ vector<string> tokenizer(string line)
 
 }*/
 
-int main(int argc,const char* argv[])
+int main()
 {
-    string line=argv[1];
-    vector<string> tokens=tokenizer(line);
-    for(int i=0;i<tokens.size();i++)
-        cout<<tokens[i]<<endl;
 
 
 

@@ -3,6 +3,8 @@
 #include <math.h>
 #include<sstream>
 #include <algorithm>
+#include<vector>
+#include<fstream>
 using namespace std;
 void Trim0(string& a)
 {
@@ -480,17 +482,88 @@ class Qint
         else
         return ~result +one;
     }
+    friend Qint operator / (Qint a,Qint b)
+    {
+        Qint one;
+        Qint result;
+        int pivot=0;
+        one.Input2("1");
+        bool isPositive;
+        if(a.BitValue(0)==b.BitValue(0)) isPositive=1;else isPositive=0;
+        if(a.BitValue(0))
+            a = ~a +one;
+        if(b.BitValue(0))
+            b= ~b +one;
+        for(;b.BitValue(pivot);pivot++);
+        Qint temp=a-b;
+        while(!temp.BitValue(0))
+        {
+            result = result + one;
+            a = a-b;
+            temp = a-b;
+        }
+        if(isPositive) return result;else return ~result +one;
+    }
+    friend Qint rol(Qint a)
+    {
+        Qint result;
+        for(int i=0;i<127;i++)
+            result.Setbit(i,a.BitValue(i+1));
+        result.Setbit(127,a.BitValue(0));
+        return result;
+    }
+    friend Qint ror(Qint a)
+    {
+        Qint result;
+        for(int i=1;i<128;i++)
+            result.Setbit(i,a.BitValue(i-1));
+        result.Setbit(0,a.BitValue(127));
+        return result;
+    }
 
 };
-int main()
+vector<string> tokenizer(string line)
 {
-    Qint a;
-    a.Input10("-1900");
-    Qint b=(~a)>>1;
-    Qint c=a*b;
-    cout<<a.Output2()<<endl<<a.OutPut10()<<endl<<a.Output16()<<endl;
-    cout<<b.Output2()<<endl<<b.OutPut10()<<endl<<b.Output16()<<endl;
-    cout<<c.Output2()<<endl<<c.OutPut10()<<endl<<c.Output16()<<endl;
+    vector <string> tokens;
+    stringstream check1(line);
+    string temp;
+    while(getline(check1, temp,' '))
+    {
+        tokens.push_back(temp);
+    }
+    return tokens;
+}
+/*void process(string output,vector<string> tokens)
+{
+    fstream f;
+    f.open(output,ios::out);
+    string base=tokens[0];
+    if( base=="2")
+    {
+
+    }
+    else if(base=="10")
+    {
+
+    }
+    else if(base=="16")
+    {
+
+    }
+
+
+
+}*/
+
+int main(int argc,const char* argv[])
+{
+    string line=argv[1];
+    vector<string> tokens=tokenizer(line);
+    for(int i=0;i<tokens.size();i++)
+        cout<<tokens[i]<<endl;
+
+
+
 
 
 

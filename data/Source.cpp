@@ -176,6 +176,24 @@ class Qint
         int temp=pos/32;
         arrBits[temp]=(1<<(31-pos-(32*temp)))^arrBits[temp];
     }
+	void Input(string input, int base)
+	{
+		if (base == 2)
+			this->Input2(input);
+		if (base == 10)
+			this->Input10(input);
+		if (base == 16)
+			this->Input16(input);
+	}
+	string Output(int base)
+	{
+		if (base == 2)
+			return this->Output2();
+		if (base == 10)
+			return this->OutPut10();
+		if (base == 16)
+			return this->Output16();
+	}
     void Input2(string input)
     {
         for(int i=0;i<input.length();i++)
@@ -405,36 +423,11 @@ class Qint
     }
     friend Qint operator >>(Qint a,int bit)
     {
-        for(int i=127;i>bit;i--)
-            a.Setbit(i,a.BitValue(i-bit));
+        Qint result;
+        for(int i=bit;i<128;i++)
+            result.Setbit(i,a.BitValue(i-bit));
         for(int i=0;i<bit;i++)
-            a.Setbit(i,a.BitValue(bit));
-        return a;
-    }
-    friend Qint operator & (Qint a,Qint b)
-    {
-        Qint result;
-        for(int i=0;i<128;i++)
-        {
-            if(a.BitValue(i) && b.BitValue(i))
-                result.Setbit(i,1);
-            else
-                result.Setbit(i,0);
-
-        }
-        return result;
-    }
-    friend Qint operator | (Qint a,Qint b)
-    {
-        Qint result;
-        for(int i=0;i<128;i++)
-        {
-            if(!a.BitValue(i) && b.BitValue(i))
-                result.Setbit(i,0);
-            else
-                result.Setbit(i,1);
-
-        }
+            result.Setbit(i,a.BitValue(0));
         return result;
     }
     friend Qint operator ^ (Qint a,Qint b)
@@ -450,6 +443,32 @@ class Qint
         }
         return result;
     }
+	friend Qint operator & (Qint a, Qint b)
+	{
+		Qint result;
+		for (int i = 0; i < 128; i++)
+		{
+			if (a.BitValue(i) && b.BitValue(i))
+				result.Setbit(i, 1);
+			else
+				result.Setbit(i, 0);
+
+		}
+		return result;
+	}
+	friend Qint operator | (Qint a, Qint b)
+	{
+		Qint result;
+		for (int i = 0; i < 128; i++)
+		{
+			if (!a.BitValue(i) && !b.BitValue(i))
+				result.Setbit(i, 0);
+			else
+				result.Setbit(i, 1);
+
+		}
+		return result;
+	}
     friend Qint operator ~(Qint a)
     {
         for(int i=0;i<128;i++)
@@ -512,7 +531,8 @@ class Qint
     {
         Qint one;
         Qint result;
-        int pivot=0;
+        int pivota=0;
+        int pivotb=0;
         one.Input2("1");
         bool isPositive;
         if(a.BitValue(0)==b.BitValue(0)) isPositive=1;else isPositive=0;
@@ -520,13 +540,19 @@ class Qint
             a = ~a +one;
         if(b.BitValue(0))
             b= ~b +one;
-        for(;b.BitValue(pivot);pivot++);
-        Qint temp=a-b;
-        while(!temp.BitValue(0))
+        for(;!a.BitValue(pivota);pivota++);
+        for(;!b.BitValue(pivotb);pivotb++);
+        if(pivota>pivotb) return result;
+        int distance=pivotb-pivota;
+        for(int i=distance;i>=0;i--)
         {
-            result = result + one;
-            a = a-b;
-            temp = a-b;
+            Qint sub=a-(b<<i);
+            if(!sub.BitValue(0))
+            {
+                result =result + (one<<i);
+                a =sub;
+            }
+
         }
         if(isPositive) return result;else return ~result +one;
     }
@@ -559,34 +585,133 @@ vector<string> tokenizer(string line)
     }
     return tokens;
 }
-/*void process(string output,vector<string> tokens)
+string EveryLine(string line)
 {
-    fstream f;
-    f.open(output,ios::out);
-    string base=tokens[0];
-    if( base=="2")
-    {
+	vector<string> tonken = tokenizer(line);
+	int base = stoi(tonken[0]);
 
-    }
-    else if(base=="10")
-    {
+	int n = tonken.size();
+	if (n == 4)
+	{
+		Qint temp1;
+		temp1.Input(tonken[1], base);
 
-    }
-    else if(base=="16")
-    {
+		if (tonken[2] == ">>")
+		{
+			int bit = stoi(tonken[3]);
+			temp1=temp1 >> bit;
+			return temp1.Output(base);
+		}
+		if (tonken[2] == "<<")
+		{
+			int bit = stoi(tonken[3]);
+			temp1=temp1 << bit;
+			return temp1.Output(base);
+		}
+		Qint temp2;
+		temp2.Input(tonken[3], base);
+		if (tonken[2] == "|")
+		{
+			Qint result = temp1 | temp2;
+			return result.Output(base);
+		}
+		if (tonken[2] == "&")
+		{
+			Qint result = temp1 & temp2;
+			return result.Output(base);
+		}
+		if (tonken[2] == "^")
+		{
 
-    }
+			Qint result = temp1 ^ temp2;
+			return result.Output(base);
+		}
+		if (tonken[2] == "+")
+		{
 
+			Qint result = temp1 + temp2;
+			return result.Output(base);
+		}
+		if (tonken[2] == "-")
+		{
 
+			Qint result = temp1 - temp2;
+			return result.Output(base);
+		}
+		if (tonken[2] == "*")
+		{
 
-}*/
+			Qint result = temp1 * temp2;
+			return result.Output(base);
+		}
+		if (tonken[2] == "/")
+		{
 
-int main()
+			Qint result= temp1/temp2;
+            return result.Output(base);
+		}
+
+	}
+	if (n == 3)
+	{
+		Qint temp1;
+		temp1.Input(tonken[2], base);
+		if (tonken[1] == "~")
+		{
+			temp1=~temp1;
+			return temp1.Output(base);
+		}
+		if (tonken[1] == "rol")
+		{
+			temp1=rol(temp1);
+			return temp1.Output(base);
+		}
+		if (tonken[1] == "ror")
+		{
+			temp1=ror(temp1);
+			return temp1.Output(base);
+		}
+		if (stoi(tonken[1]) == base)
+			return temp1.Output(base);
+		else
+		{
+			int base1 = stoi(tonken[1]);
+			return temp1.Output(base1);
+		}
+
+	}
+}
+void process(string inputF, string outputF)
 {
+	fstream input;
+	input.open(inputF, ios::in);
+	if (!input)
+	{
+		cout << "File " << inputF << " is not exist!" << endl;
+		return;
+	}
+
+	fstream output;
+	output.open(outputF, ios::out);
+	string line;
+	while (!input.eof())
+	{
+		getline(input, line);
+		output << EveryLine(line) << endl;
+	}
+
+	input.close();
+	output.close();
+}
 
 
 
+int main(int agrc,char* argv[])
+{
+	string inputF =argv[1];
+	string outputF = argv[2];
+	cout << "Is running......" << endl;
+	process(inputF, outputF);
 
-
-
+	return 0;
 }
